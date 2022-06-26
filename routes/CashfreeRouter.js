@@ -17,7 +17,7 @@ router.post("/create/order", async (req, res) => {
         order_id: oid,
         order_amount: req.body.amt,
         order_currency: "INR",
-        order_note: "Additional order info",
+        order_note: "Awesome Payment Gateways",
         customer_details: {
           customer_id: "1234518745",
           customer_email: "ritik9628@gmail.com",
