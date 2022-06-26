@@ -7,12 +7,13 @@ const router = express.Router();
 
 const clientID = process.env.CASHFREE_CLIENT_ID;
 const clientSecret = process.env.CASHFREE_CLIENT_SECRET;
+const hostname = process.env.CASHFREE_HOSTNAME;
 
 router.post("/create/order", async (req, res) => {
   var oid = "OD_" + Math.floor(Math.random() * 99999999);
   try {
     const result = await axios.post(
-      "https://sandbox.cashfree.com/pg/orders",
+      `${hostname}/pg/orders`,
       {
         order_id: oid,
         order_amount: req.body.amt,
@@ -48,7 +49,7 @@ router.post("/create/order", async (req, res) => {
 router.post("/save", async (req, res) => {
   try {
     const checkinserver = await axios.get(
-      `https://sandbox.cashfree.com/pg/orders/${req.body.order.orderId}`,
+      `${hostname}/pg/orders/${req.body.order.orderId}`,
       {
         headers: {
           "x-api-version": "2022-01-01",
@@ -85,7 +86,7 @@ router.post("/create/refund", async (req, res) => {
   const { oid, amt, _id } = req.body;
   try {
     const result = await axios.post(
-      `https://sandbox.cashfree.com/pg/orders/${oid}/refunds`,
+      `${hostname}/pg/orders/${oid}/refunds`,
       {
         refund_amount: amt,
         refund_id: rid,
@@ -126,7 +127,7 @@ router.post("/get/refund", async (req, res) => {
   const { oid, rid, _id } = req.body;
   try {
     const result = await axios.get(
-      `https://sandbox.cashfree.com/pg/orders/${oid}/refunds/${rid}`,
+      `${hostname}/pg/orders/${oid}/refunds/${rid}`,
       {
         headers: {
           "x-api-version": "2022-01-01",

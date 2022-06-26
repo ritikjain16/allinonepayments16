@@ -6,14 +6,14 @@ import SavePaymentInDB from "../schemas/PaymentSchema.js";
 dotenv.config();
 const mid = process.env.PAYTM_MERCHANT_ID;
 const mkey = process.env.PAYTM_MERCHANT_KEY;
-const paytmHostname = "securegw-stage.paytm.in";
+const paytmHostname = process.env.PAYTM_HOSTNAME;
 // const paytmHostname = "securegw.paytm.in";
 
 const router = express.Router();
 // -------------------------------------
 
 router.post("/send/mid", async (req, res) => {
-  res.status(200).send({ mid: mid });
+  res.status(200).send({ mid: mid, paytmHostname });
 });
 
 // -----------------------------------------------
