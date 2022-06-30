@@ -2,6 +2,7 @@ import express from "express";
 import axios from "axios";
 import SaveInDB from "../schemas/PaymentSchema.js";
 import dotenv from "dotenv";
+import { authmiddleware } from "../authmiddleware.js";
 dotenv.config();
 const router = express.Router();
 
@@ -9,7 +10,7 @@ const clientID = process.env.CASHFREE_CLIENT_ID;
 const clientSecret = process.env.CASHFREE_CLIENT_SECRET;
 const hostname = process.env.CASHFREE_HOSTNAME;
 
-router.post("/create/order", async (req, res) => {
+router.post("/create/order", authmiddleware, async (req, res) => {
   var oid = "OD_" + Math.floor(Math.random() * 99999999);
   try {
     const result = await axios.post(
@@ -46,7 +47,7 @@ router.post("/create/order", async (req, res) => {
   }
 });
 
-router.post("/save", async (req, res) => {
+router.post("/save", authmiddleware, async (req, res) => {
   try {
     const checkinserver = await axios.get(
       `${hostname}/pg/orders/${req.body.order.orderId}`,
@@ -81,7 +82,7 @@ router.post("/save", async (req, res) => {
   }
 });
 
-router.post("/create/refund", async (req, res) => {
+router.post("/create/refund", authmiddleware, async (req, res) => {
   var rid = "REFUND_" + Math.floor(Math.random() * 99999999);
   const { oid, amt, _id } = req.body;
   try {
@@ -122,7 +123,7 @@ router.post("/create/refund", async (req, res) => {
   }
 });
 
-router.post("/get/refund", async (req, res) => {
+router.post("/get/refund", authmiddleware, async (req, res) => {
   // var rid = "REFUND_" + Math.floor(Math.random() * 99999999);
   const { oid, rid, _id } = req.body;
   try {

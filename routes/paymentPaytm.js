@@ -3,6 +3,7 @@ import PaytmChecksum from "paytmchecksum";
 import https from "https";
 import dotenv from "dotenv";
 import SavePaymentInDB from "../schemas/PaymentSchema.js";
+import { authmiddleware } from "../authmiddleware.js";
 dotenv.config();
 const mid = process.env.PAYTM_MERCHANT_ID;
 const mkey = process.env.PAYTM_MERCHANT_KEY;
@@ -12,12 +13,12 @@ const paytmHostname = process.env.PAYTM_HOSTNAME;
 const router = express.Router();
 // -------------------------------------
 
-router.post("/send/mid", async (req, res) => {
+router.post("/send/mid",authmiddleware, async (req, res) => {
   res.status(200).send({ mid: mid, paytmHostname });
 });
 
 // -----------------------------------------------
-router.post("/create/order", async (req, res) => {
+router.post("/create/order",authmiddleware, async (req, res) => {
   var paytmParams = {};
 
   const { oid, amt } = req.body;
@@ -77,7 +78,7 @@ router.post("/create/order", async (req, res) => {
 });
 // -----------------------------------------------
 
-router.post("/save", async (req, res) => {
+router.post("/save", authmiddleware,async (req, res) => {
   // console.log(req.body);
 
   var received_data = req.body;
@@ -199,7 +200,7 @@ const getresponse = (ORDERID, res) => {
   );
 };
 // --------------------------------------------------------
-router.post("/create/refund", async (req, res) => {
+router.post("/create/refund", authmiddleware,async (req, res) => {
   const { orderId, txnId, refId, refundAmount, _id } = req.body;
   refundamt(orderId, txnId, refId, refundAmount, res, _id);
 });
@@ -287,7 +288,7 @@ const refundamt = (orderId, txnId, refId, refundAmount, res, _id) => {
 
 // --------------------------------------------------------
 
-router.post("/get/refund", async (req, res) => {
+router.post("/get/refund",authmiddleware, async (req, res) => {
   const { orderId, refId, _id } = req.body;
   refundstatus(orderId, refId, res, _id);
 });
@@ -369,7 +370,7 @@ const refundstatus = (orderId, refId, res, _id) => {
 
 // --------------------------------------
 
-router.post("/generate/payment/link", async (req, res) => {
+router.post("/generate/payment/link",authmiddleware, async (req, res) => {
   generateLink(res);
 });
 
