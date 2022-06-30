@@ -2,8 +2,9 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import PaytmPaymentRouter from "./routes/paymentPaytm.js";
-import CashfreeRouter from "./routes/CashfreeRouter.js"
-import Razorpayrouter from "./routes/Razorpayrouter.js"
+import CashfreeRouter from "./routes/CashfreeRouter.js";
+import Razorpayrouter from "./routes/Razorpayrouter.js";
+import PayuRouter from "./routes/PayuRouter.js";
 import dotenv from "dotenv";
 import SavePaymentInDB from "./schemas/PaymentSchema.js";
 dotenv.config();
@@ -27,6 +28,7 @@ mongoose
 app.use("/payments/paytm", PaytmPaymentRouter);
 app.use("/payments/cashfree", CashfreeRouter);
 app.use("/payments/razorpay", Razorpayrouter);
+app.use("/payments/payu", PayuRouter);
 
 app.post("/orders/get", async (req, res) => {
   try {
@@ -34,6 +36,22 @@ app.post("/orders/get", async (req, res) => {
     res.status(200).send(getallpayments.reverse());
   } catch (e) {
     console.log(e);
+    res.status(400).send(e);
+  }
+});
+
+app.post("/orders/get/limited", async (req, res) => {
+  try {
+    const skip =
+      req.query.skip && /^\d+$/.test(req.query.skip)
+        ? Number(req.query.skip)
+        : 0;
+    const getallpayments = await SavePaymentInDB.find({}, undefined, {
+      skip,
+      limit: 3,
+    }).sort({ $natural: -1 });
+    res.status(200).send(getallpayments);
+  } catch (e) {
     res.status(400).send(e);
   }
 });
