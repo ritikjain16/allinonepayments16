@@ -110,7 +110,7 @@ router.post("/get/refund", async (req, res) => {
 });
 
 router.post("/create/link", async (req, res) => {
-  const { amt } = req.body;
+  const { amt, name, email, contact } = req.body;
   try {
     var result = await instance.paymentLink.create({
       amount: parseInt(amt) * 100,
@@ -119,9 +119,9 @@ router.post("/create/link", async (req, res) => {
       // first_min_partial_amount: 100,
       description: "AllinOnePayments",
       customer: {
-        name: "Ritik Jain",
-        email: "ritik9628@gmail.com",
-        contact: "8979478808",
+        name,
+        email,
+        contact,
       },
       notify: {
         sms: true,
@@ -150,7 +150,45 @@ router.post("/get/link/status", async (req, res) => {
   const { id } = req.body;
   try {
     const result = await instance.paymentLink.fetch(id);
-    res.status(200).send(result);
+    // console.log(result);
+    if (result.status === "paid") {
+      try {
+        const findstatus = await SaveInDb.findOne({
+          paymentPlatform: "RazorpayPayMentLink",
+          "data.id": id,
+        });
+        if (findstatus) {
+          const updatestatus = await SaveInDb.updateOne(
+            { paymentPlatform: "RazorpayPayMentLink", "data.id": id },
+            {
+              $set: {
+                data: result,
+                paymentPlatform: "RazorpayPayMentLink",
+              },
+            }
+          );
+          // console.log(updatestatus);
+          res.status(200).send(result);
+        } else {
+          try {
+            const save = await SaveInDb.create({
+              data: result,
+              paymentPlatform: "RazorpayPayMentLink",
+            });
+            // console.log(save);
+            res.status(200).send(result);
+          } catch (e) {
+            console.log(e);
+            res.status(400).send(e);
+          }
+        }
+      } catch (e) {
+        console.log(e);
+        res.status(400).send(e);
+      }
+    } else {
+      res.status(200).send(result);
+    }
   } catch (e) {
     console.log(e);
     res.status(400).send(e);
