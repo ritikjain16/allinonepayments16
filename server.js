@@ -7,6 +7,7 @@ import Razorpayrouter from "./routes/Razorpayrouter.js";
 import PayuRouter from "./routes/PayuRouter.js";
 import dotenv from "dotenv";
 import SavePaymentInDB from "./schemas/PaymentSchema.js";
+import { authmiddleware } from "./authmiddleware.js";
 dotenv.config();
 
 const port = process.env.PORT || 5000;
@@ -30,7 +31,7 @@ app.use("/payments/cashfree", CashfreeRouter);
 app.use("/payments/razorpay", Razorpayrouter);
 app.use("/payments/payu", PayuRouter);
 
-app.post("/orders/get", async (req, res) => {
+app.post("/orders/get", authmiddleware, async (req, res) => {
   try {
     const getallpayments = await SavePaymentInDB.find();
     res.status(200).send(getallpayments.reverse());
@@ -40,7 +41,7 @@ app.post("/orders/get", async (req, res) => {
   }
 });
 
-app.post("/orders/get/limited", async (req, res) => {
+app.post("/orders/get/limited", authmiddleware, async (req, res) => {
   try {
     const skip =
       req.query.skip && /^\d+$/.test(req.query.skip)

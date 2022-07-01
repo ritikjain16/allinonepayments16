@@ -9,6 +9,8 @@ const router = express.Router();
 
 const keyid = process.env.RAZORPAY_KEY_ID;
 const keysecret = process.env.RAZORPAY_KEY_SECRET;
+const BACKEND_URL = process.env.BACKEND_URL;
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 var instance = new Razorpay({
   key_id: keyid,
@@ -109,7 +111,7 @@ router.post("/get/refund", authmiddleware, async (req, res) => {
 });
 
 router.post("/create/link", authmiddleware, async (req, res) => {
-  const { amt, name, email, contact } = req.body;
+  const { amt, name, email, contact, fromclient } = req.body;
   try {
     var result = await instance.paymentLink.create({
       amount: parseInt(amt) * 100,
@@ -123,8 +125,8 @@ router.post("/create/link", authmiddleware, async (req, res) => {
         contact,
       },
       notify: {
-        sms: true,
-        email: true,
+        sms: fromclient ? false : true,
+        email: fromclient ? false : true,
       },
       reminder_enable: true,
       notes: {
@@ -135,14 +137,68 @@ router.post("/create/link", authmiddleware, async (req, res) => {
           name: "AllinOnePayments",
         },
       },
-      // callback_url: "https://example-callback-url.com/",
-      // callback_method: "get",
+      callback_url: fromclient
+        ? `${BACKEND_URL}/payments/razorpay/get/link/status/client`
+        : "",
+      callback_method: fromclient ? "get" : "",
     });
     res.status(200).send(result);
   } catch (e) {
     console.log(e);
     res.status(400).send(e);
   }
+});
+
+router.get("/get/link/status/client", authmiddleware, async (req, res) => {
+  var ourl = `${BACKEND_URL}/` + req.originalUrl;
+  var url = new URL(ourl);
+  const id = url.searchParams.get("razorpay_payment_link_id");
+
+  try {
+    const result = await instance.paymentLink.fetch(id);
+    if (result.status === "paid") {
+      try {
+        const findstatus = await SaveInDb.findOne({
+          paymentPlatform: "RazorpayPayMentLink",
+          "data.id": id,
+        });
+        if (findstatus) {
+          const updatestatus = await SaveInDb.updateOne(
+            { paymentPlatform: "RazorpayPayMentLink", "data.id": id },
+            {
+              $set: {
+                data: result,
+                paymentPlatform: "RazorpayPayMentLink",
+              },
+            }
+          );
+          res.redirect(`${FRONTEND_URL}`);
+        } else {
+          try {
+            const save = await SaveInDb.create({
+              data: result,
+              paymentPlatform: "RazorpayPayMentLink",
+            });
+            res.redirect(`${FRONTEND_URL}`);
+          } catch (e) {
+            console.log(e);
+            res.status(400).send(e);
+          }
+        }
+      } catch (e) {
+        console.log(e);
+        res.status(400).send(e);
+      }
+    } else {
+      alert(result.status);
+      res.redirect(`${FRONTEND_URL}`);
+    }
+  } catch (e) {
+    console.log(e);
+    res.status(400).send(e);
+  }
+
+  // res.status(200).send(url)
 });
 
 router.post("/get/link/status", authmiddleware, async (req, res) => {
