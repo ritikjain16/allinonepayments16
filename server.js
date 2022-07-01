@@ -33,8 +33,10 @@ app.use("/payments/payu", PayuRouter);
 
 app.post("/orders/get", authmiddleware, async (req, res) => {
   try {
-    const getallpayments = await SavePaymentInDB.find();
-    res.status(200).send(getallpayments.reverse());
+    const getallpayments = await SavePaymentInDB.find()
+      .sort({ $natural: -1 })
+      .limit(50);
+    res.status(200).send(getallpayments);
   } catch (e) {
     console.log(e);
     res.status(400).send(e);
