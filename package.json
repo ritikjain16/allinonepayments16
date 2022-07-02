@@ -20,6 +20,7 @@
     "mongoose": "^6.4.0",
     "paytmchecksum": "^1.5.0",
     "payu-sdk": "^1.1.1",
-    "razorpay": "^2.8.1"
+    "razorpay": "^2.8.1",
+    "razorpay-solution-js": "^2.0.5"
   }
 }
